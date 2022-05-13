@@ -4,7 +4,7 @@ Basic reference library generator; rendered from curated RefSeq genome assemblie
 
 Each new library contains representatives of every species within the Genera you specify. The highest spec genome assemblies are selected. You can choose how many representatives from each species to include. Please note, for some species the quantity you specify may not be available.
 
-Your new library will be stored in a folder named with the date and time.
+Your new library will be stored in a folder named with the date.
 
 
 <pre><code>usage: univeral-RIG.py [-h] [-m [MAXIMUM]] [-e [EXTENSION]] [-v VERBOSITY] [genera]
