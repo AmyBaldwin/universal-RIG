@@ -8,23 +8,37 @@ import requests
 import shutil
 import time, datetime, os
 import sys
+import argparse
+from ast import arg
 
-#### SETTING UP PARAMETERS ####
+#### SETTING UP PARAMETERS AND HELP ####
+
+parser = argparse.ArgumentParser(description="Basic reference library generator; rendered from curated RefSeq genome assemblies.")
+parser.add_argument("genera", nargs='?', help="List genera here. Separate multiple genera with comma ( >> no spaces << )", type=str)
+parser.add_argument("-m", "--maximum", nargs='?', default=1, help="number of strains per species", type=int)
+parser.add_argument("-e", "--extension", nargs='?', default="fa", help="the file extension for the assembled genomes", type=str)
+parser.add_argument("-v", "--verbosity", help="increase output verbosity")
+args = parser.parse_args()
+
+if len(sys.argv)==1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+args=parser.parse_args()
+
 
 ## GENERA ##
-genera = sys.argv[1]
-genus_filters = genera.split(",")
-print("The Genera will be: ", genus_filters)
+print("Your new reference library will include", args.genera)
+genus = args.genera
+genus_filters = genus.split(",")
 
 ## QUANTITY ##
-max = int(sys.argv[2]) - 1
-print("The number of species downloaded for each Genera will be: ", sys.argv[2])
+maxPlusOne = args.maximum
+print("The maximum number of genome assemblies included per species will be:", maxPlusOne)
+max = maxPlusOne - 1
 
 ## FILE EXTENSION ##
-ending = sys.argv[3]
-print("The file extension will be: ", ending)
-
-#### PARAMETERS END ####
+ending = args.extension
+print("The file extension will be:", ending)
 
 
 #### Configure options here ####
@@ -38,6 +52,7 @@ genus_filters_negative = [x + string for x in genus_filters]
 
 other_negative_filters = ["phage", "virus"]
 genus_filters_negative.extend(other_negative_filters)
+#print(genus_filters_negative)
 
 #### Configure options end ####
 
@@ -78,7 +93,6 @@ print("Downloading RefSeq Summary")
 ftpstream = urllib.request.urlopen(refseq_summary_url)
 csvfile = csv.reader(codecs.iterdecode(ftpstream, 'utf-8'), delimiter='\t')
 
-
 # Create dict of {header: line_property}. Gets around first line being unrealated to the table 
 csvkeys = []
 csvlines = []
@@ -93,7 +107,6 @@ dictlist = []
 for line in csvlines:
     linedict = dict(zip( csvkeys, line))
     dictlist.append(linedict)
-
 
 # Filter dict from csv to contain just selected genera and remove lines with unwanted
 # strings in species name
@@ -114,6 +127,7 @@ negative_filtered_dicts = []
 for line in filtered_dicts_genus:
     if line['assembly_accession'] not in negative_filtered_accessions:
         negative_filtered_dicts.append(line)
+
 
 
 # Dereplicate the filtered dict to keep just the highest spec representative from each species
@@ -218,8 +232,8 @@ for line in negative_filtered_dicts:
 
 negative_filtered_dicts = [x for x in negative_filtered_dicts if not ('Contig' == x.get('assembly_level'))]
 
-print("Filtered RefSeq summary")
 
+print("Filtered RefSeq summary")
 
 # Create dict of output filename and RefSeq assembly URL
 download_urls = []
